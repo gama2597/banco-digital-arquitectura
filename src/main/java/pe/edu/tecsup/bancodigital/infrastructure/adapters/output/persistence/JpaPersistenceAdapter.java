@@ -15,6 +15,7 @@ import pe.edu.tecsup.bancodigital.infrastructure.adapters.output.persistence.rep
 import pe.edu.tecsup.bancodigital.infrastructure.adapters.output.persistence.repository.SpringDataClientRepository;
 import pe.edu.tecsup.bancodigital.infrastructure.adapters.output.persistence.repository.SpringDataTransactionRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -42,6 +43,14 @@ public class JpaPersistenceAdapter implements AccountRepositoryPort, ClientRepos
         return clientRepository.existsById(id);
     }
 
+    @Override
+    public List<Client> searchClients(String criteria) {
+        return clientRepository.searchByText(criteria)
+                .stream()
+                .map(mapper::toClientDomain)
+                .toList();
+    }
+
     // --- CUENTA ---
     @Override
     public Account save(Account account) {
@@ -57,6 +66,14 @@ public class JpaPersistenceAdapter implements AccountRepositoryPort, ClientRepos
     @Override
     public Optional<Account> findByAccountNumber(String accountNumber) {
         return accountRepository.findByNumeroCuenta(accountNumber).map(mapper::toAccountDomain);
+    }
+
+    @Override
+    public List<Account> findByClientId(String clientId) {
+        return accountRepository.findByClientId(clientId)
+                .stream()
+                .map(mapper::toAccountDomain)
+                .toList();
     }
 
     @Override

@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import pe.edu.tecsup.bancodigital.application.ports.input.CreateAccountUseCase;
@@ -15,10 +16,13 @@ import pe.edu.tecsup.bancodigital.infrastructure.adapters.input.rest.dto.Account
 import pe.edu.tecsup.bancodigital.infrastructure.adapters.input.rest.dto.CreateAccountRequest;
 import pe.edu.tecsup.bancodigital.infrastructure.adapters.input.rest.dto.TransferRequest;
 
+import java.util.List;
+
 @RestController
-@RequestMapping("/api/v1/accounts")
+@RequestMapping("/accounts")
 @RequiredArgsConstructor
 @Tag(name = "Gestión Bancaria", description = "Endpoints para cuentas y transferencias")
+@Slf4j
 public class AccountController {
 
     private final CreateAccountUseCase createAccountUseCase;
@@ -69,6 +73,26 @@ public class AccountController {
                 account.getStatus(),
                 account.getCreatedAt()
         );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/by-client/{clientId}")
+    @Operation(summary = "Cuentas por Cliente", description = "Lista todas las cuentas de un cliente")
+    public ResponseEntity<List<AccountResponse>> getAccountsByClient(@PathVariable String clientId) {
+
+        List<Account> accounts = getAccountUseCase.getAccountsByClient(clientId);
+
+        List<AccountResponse> response = accounts.stream()
+                .map(acc -> new AccountResponse(
+                        acc.getId(),
+                        acc.getAccountNumber(),
+                        acc.getClientId(),
+                        acc.getBalance().amount(),
+                        acc.getStatus(),
+                        acc.getCreatedAt()
+                ))
+                .toList();
 
         return ResponseEntity.ok(response);
     }

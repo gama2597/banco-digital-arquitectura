@@ -1,6 +1,7 @@
 package pe.edu.tecsup.bancodigital.application.usecases;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import pe.edu.tecsup.bancodigital.application.ports.input.CreateAccountUseCase;
 import pe.edu.tecsup.bancodigital.application.ports.input.GetAccountUseCase;
 import pe.edu.tecsup.bancodigital.application.ports.input.TransferUseCase;
@@ -8,15 +9,16 @@ import pe.edu.tecsup.bancodigital.application.ports.output.AccountRepositoryPort
 import pe.edu.tecsup.bancodigital.application.ports.output.ClientRepositoryPort;
 import pe.edu.tecsup.bancodigital.application.ports.output.NotificationPort;
 import pe.edu.tecsup.bancodigital.application.ports.output.TransactionRepositoryPort;
-import pe.edu.tecsup.bancodigital.domain.exception.InsufficientBalanceException;
 import pe.edu.tecsup.bancodigital.domain.model.Account;
+import pe.edu.tecsup.bancodigital.domain.model.Client;
 import pe.edu.tecsup.bancodigital.domain.model.Transaction;
 import pe.edu.tecsup.bancodigital.domain.model.vo.Money;
-// NOTA: No usamos @Service aquí para mantenerlo puro (lo inyectaremos en la config),
-// pero si prefieres simplicidad puedes agregarlo.
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @RequiredArgsConstructor // Inyección de dependencias por constructor automática de Lombok
+@Slf4j
 public class BankAccountService implements CreateAccountUseCase, TransferUseCase, GetAccountUseCase {
 
     private final ClientRepositoryPort clientRepository;
@@ -101,5 +103,25 @@ public class BankAccountService implements CreateAccountUseCase, TransferUseCase
         // Usamos el puerto de salida que ya teníamos (AccountRepositoryPort)
         return accountRepository.findAccountById(id)
                 .orElseThrow(() -> new IllegalArgumentException("La cuenta con ID " + id + " no existe."));
+    }
+
+    @Override
+    public List<Account> getAccountsByClient(String searchCriteria) {
+        // 1. Buscamos clientes que coincidan con el texto (ID, Nombre o DNI)
+        List<Client> foundClients = clientRepository.searchClients(searchCriteria);
+
+        if (foundClients.isEmpty()) {
+            return List.of(); // Lista vacía si no hay coincidencias
+        }
+
+        // 2. Para cada cliente encontrado, buscamos sus cuentas
+        List<Account> allAccounts = new ArrayList<>();
+
+        for (Client client : foundClients) {
+            List<Account> accounts = accountRepository.findByClientId(client.getId());
+            allAccounts.addAll(accounts);
+        }
+
+        return allAccounts;
     }
 }

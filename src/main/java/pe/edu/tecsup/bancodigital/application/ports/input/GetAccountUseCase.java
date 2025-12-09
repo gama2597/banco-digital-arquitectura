@@ -2,6 +2,8 @@ package pe.edu.tecsup.bancodigital.application.ports.input;
 
 import pe.edu.tecsup.bancodigital.domain.model.Account;
 
+import java.util.List;
+
 public interface GetAccountUseCase {
     /**
      * Permite consultar el saldo y estado de una cuenta.
@@ -9,4 +11,6 @@ public interface GetAccountUseCase {
      * @return La entidad Cuenta del dominio
      */
     Account getAccount(String id);
+
+    List<Account> getAccountsByClient(String clientId);
 }
