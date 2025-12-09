@@ -1,0 +1,18 @@
+graph TD
+    User((Usuario Ext)) -->|API REST| Controller[Input Adapter REST]
+
+    subgraph "APPLICATION (Hexagonal)"
+        Controller -->|Use| InputPort[Input Port Interface]
+        InputPort -->|Implements| Service[Application Service / Use Cases]
+    end
+
+    subgraph "DOMAIN (Núcleo)"
+        Service -->|Use| DomainModel[Domain Entities & VO]
+    end
+
+    subgraph "INFRASTRUCTURE"
+        Service -->|Use| OutputPort[Output Port Interface]
+        PersistenceAdapter[Output Adapter Persistence] -->|Implements| OutputPort
+        PersistenceAdapter -->|Use| Repository[JPA Repository]
+        Repository -->|SQL| Database[(H2 Database)]
+    end
